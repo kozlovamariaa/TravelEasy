@@ -1,5 +1,7 @@
 package com.kozlovam.controllers;
 
+import com.kozlovam.exceptions.NullPasswordException;
+import com.kozlovam.exceptions.NullUserException;
 import com.kozlovam.models.User;
 import com.kozlovam.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +28,17 @@ public class RegistrationController {
 
     @PostMapping()
     public ResponseEntity create(@ModelAttribute("user") User user) {
-        if (userService.loadUser(user) == null) {
-            user.setUserpassword(passwordEncoder.encode(user.getUserpassword()));
-            userService.saveUser(user);
-            return  ResponseEntity.status(HttpStatus.OK).body("Регистрация прошла успешно");
-        }
-        else if(userService.loadUser(user) != null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Такой пользователь существует");
+        try{
+            if (userService.loadUser(user) == null) {
+                user.setUserpassword(passwordEncoder.encode(user.getUserpassword()));
+                userService.saveUser(user);
+                return ResponseEntity.status(HttpStatus.OK).body("Регистрация прошла успешно");
+            }
+            else if(userService.loadUser(user) != null){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Такой пользователь существует");
+            }
+        } catch (NullUserException | NullPasswordException e) {
+            System.out.println("Перехваченное исключение." + e);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка, попробуйте еще");
     }
