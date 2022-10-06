@@ -2,13 +2,17 @@ package com.kozlovam.services;
 
 import com.kozlovam.dao.UserDAO;
 import com.kozlovam.dto.UserDTO;
+import com.kozlovam.exceptions.NullPasswordException;
+import com.kozlovam.exceptions.NullUserException;
 import com.kozlovam.models.Token;
 import com.kozlovam.models.User;
 import org.apache.log4j.Logger;
+import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.Null;
 import java.util.List;
 
 
@@ -79,7 +83,13 @@ public class UserService {
     }
 
     //for registration
-    public User loadUser(User user) throws UsernameNotFoundException {
+    public User loadUser(User user) throws UsernameNotFoundException, NullUserException, NullPasswordException {
+        if(user.getUserlogin() == null){
+            throw new NullUserException("Перехваченное исключение.", user.getUserlogin());
+        }
+        else if(user.getUserpassword() == null){
+            throw new NullPasswordException("Перехваченное исключение.");
+        }
         User newUser = userDAO.findByUsername(user.getUserlogin());
         if (newUser == null) {
             logger.error("Пользователь не найден.");
